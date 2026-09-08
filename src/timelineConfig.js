@@ -46,6 +46,7 @@ export function getHeuristTimelineConfig() {
     runtimeMode: runtime.runtimeMode || "standalone",
     language: String(runtime.language || "eng").toLowerCase().slice(0, 3),
     database: runtime.database || null,
+    baseUrl: runtime.baseUrl || null,
     apiBaseUrl: runtime.apiBaseUrl || null,
     accessToken: runtime.accessToken || null,
     requestHeaders: runtime.requestHeaders || {},
@@ -77,10 +78,9 @@ function normalizeSettings(value) {
   return {
     stack: value.stack !== false,
     orientation: value.orientation || "both",
-    labelMode: ["full", "truncate", "fixed", "hidden"].includes(value.labelMode)
+    labelMode: ["full", "truncate", "hidden"].includes(value.labelMode)
       ? value.labelMode
       : "full",
-    labelWidthEm: Math.min(100, Math.max(5, Number(value.labelWidthEm) || 10)),
     labelPosition: value.labelPosition === "above" ? "above" : "bar",
     showToolbar: value.showToolbar !== false,
     zoomMax: Number(value.zoomMax) || 31536000000 * 500000,

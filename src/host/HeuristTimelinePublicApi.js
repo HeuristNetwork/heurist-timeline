@@ -184,9 +184,10 @@ export class HeuristTimelinePublicApi {
    * @returns {string} The newly selected label mode.
    */
   cycleLabelMode() {
-    const modes = ["full", "truncate", "fixed", "hidden"];
+    const modes = ["full", "truncate", "hidden"];
     const engine = this.application.engine;
-    const next = modes[(modes.indexOf(engine.settings.labelMode) + 1) % modes.length];
+    const current = modes.indexOf(engine.settings.labelMode);
+    const next = modes[(current + 1) % modes.length];
     engine.setOptions({ labelMode: next });
     return next;
   }

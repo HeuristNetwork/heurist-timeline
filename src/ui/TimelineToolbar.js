@@ -38,13 +38,13 @@ export class TimelineToolbar {
     bar.className = "heurist-timeline-toolbar";
 
     const buttons = [
-      ["fa-magnifying-glass-plus", "Zoom in", () => this.api.zoomIn()],
-      ["fa-magnifying-glass-minus", "Zoom out", () => this.api.zoomOut()],
-      ["fa-arrows-left-right-to-line", "Zoom to all", () => this.api.zoomToAll()],
+      ["fa-plus", "Zoom in", () => this.api.zoomIn()],
+      ["fa-minus", "Zoom out", () => this.api.zoomOut()],
+      ["fa-expand", "Zoom to all", () => this.api.zoomToAll()],
       ["fa-crosshairs", "Zoom to selection", () => this.api.zoomToSelection()],
-      ["fa-backward-step", "Move to start", () => this.api.moveToStart()],
-      ["fa-forward-step", "Move to end", () => this.api.moveToEnd()],
-      ["fa-gear", "Timeline options", () => this._toggleOptions()],
+      ["fa-chevron-left", "Move to start", () => this.api.moveToStart()],
+      ["fa-chevron-right", "Move to end", () => this.api.moveToEnd()],
+      ["fa-tag", "Label options", () => this._cycleLabelMode()],
     ];
 
     for (const [icon, title, handler] of buttons) {
@@ -54,17 +54,35 @@ export class TimelineToolbar {
       button.innerHTML = `<i class="fa-solid ${icon}"></i>`;
       button.addEventListener("click", handler);
       bar.appendChild(button);
+      if (icon === "fa-tag") this.labelButton = button;
     }
 
+    this._syncLabelButton(this.settings.labelMode || "full");
     container.parentElement?.insertBefore(bar, container);
     this.element = bar;
   }
 
   /**
-   * Toggles the current label mode used by the timeline renderer.
+   * Cycles the label display mode (full -> truncated -> hidden) and refreshes
+   * the button hint.
    */
-  _toggleOptions() {
-    this.api.cycleLabelMode();
+  _cycleLabelMode() {
+    this._syncLabelButton(this.api.cycleLabelMode());
+  }
+
+  /**
+   * Updates the label button tooltip to describe the current mode and the next
+   * click.
+   *
+   * @param {string} mode - The active label mode.
+   */
+  _syncLabelButton(mode) {
+    const hints = {
+      full: "Labels: full length — click to truncate",
+      truncate: "Labels: truncated — click to hide",
+      hidden: "Labels: hidden — click to show full length",
+    };
+    if (this.labelButton) this.labelButton.title = hints[mode] || "Label options";
   }
 
   /**

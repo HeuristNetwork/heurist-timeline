@@ -9,7 +9,11 @@ export class TimelineApplication extends EventTarget {
     await this.host.initialize({ config: this.config });
     await this.engine.initialize({
       container: this.container,
-      settings: this.config.settings,
+      settings: {
+        ...this.config.settings,
+        iconBaseUrl: this.config.baseUrl || this.config.host?.baseUrl || "",
+        database: this.config.database || this.config.host?.database || ""
+      },
       onSelectionChange: ids => this._selectionFromEngine(ids),
       onRangeChange: range => this.dispatch("heurist-timeline-range-changed", range)
     });

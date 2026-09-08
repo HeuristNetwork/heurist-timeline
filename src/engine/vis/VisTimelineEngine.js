@@ -36,6 +36,14 @@ export class VisTimelineEngine {
 
     this.timeline = new Timeline(container, this.items, this.groups, {
       orientation: settings.orientation || "both",
+      // The item template emits our own classed markup and escapes every
+      // interpolated value itself; vis-timeline's js-xss filter would otherwise
+      // strip the class/style attributes the custom bar rendering depends on.
+      xss: { disabled: true },
+      // Pin range content to the bar's start so the overflowing marker+label
+      // sizes .vis-item-content; vis then stacks the range by boxWidth + label
+      // width and range labels stop colliding when zoomed in.
+      align: "left",
       selectable: true,
       multiselect: true,
       stack: settings.stack !== false,
@@ -156,6 +164,10 @@ export class VisTimelineEngine {
       orientation: this.settings.orientation || "both",
       template: (item) => this._template(item),
     });
+    // Re-bind the items so vis-timeline re-runs the template and re-measures
+    // every item width for stacking. A bare redraw() keeps the cached widths,
+    // so switching e.g. hidden -> full leaves the items jammed together.
+    this.timeline.setItems(this.items);
     this.timeline.redraw();
   }
 
@@ -193,19 +205,66 @@ export class VisTimelineEngine {
   }
 
   /**
-   * Renders the HTML template used for timeline item labels.
+   * Renders the custom timeline item: a record-type marker plus a label that
+   * overflows to the right, layered over an uncertainty bar. Point kinds keep
+   * the marker+label in flow so vis-timeline stacks items by label width;
+   * range kinds size the bar to the time span and layer gradient caps behind
+   * a label that also drives the stacking width.
    *
    * @param {object} item - vis-timeline item object.
-   * @returns {string} Sanitized HTML string for the item label.
+   * @returns {string} HTML string for the item content.
    */
   _template(item) {
-    const cls = `heurist-temporal heurist-temporal-${item.temporalKind || "exact"}`;
-    const label = escapeHtml(this.settings.labelMode === "hidden" ? "" : item.content || "");
-    const style = this.settings.labelMode === "fixed"
-      ? ` style="--heurist-label-width:${Number(this.settings.labelWidthEm) || 10}em"`
+    const kind = item.temporalKind || "exact";
+    const scaled = kind === "range" || kind === "fuzzy-range";
+    const labelMode = this.settings.labelMode || "full";
+    const labelPos = this.settings.labelPosition || "bar";
+    const labelText = escapeHtml(labelMode === "hidden" ? "" : item.content || "");
+    const tooltip = escapeHtml(item.temporal?.label || item.title || item.content || "");
+
+    const iconUrl = this._iconUrl(item.rectypeId);
+    const marker = iconUrl
+      ? `<img class="htl-marker" width="16" height="16" alt="" src="${escapeHtml(iconUrl)}" title="${tooltip}">`
+      : `<span class="htl-marker htl-marker-blank"></span>`;
+    const lead = `<span class="htl-lead">${marker}<span class="htl-label">${labelText}</span></span>`;
+    const common = `htl-kind-${kind} heurist-label-${labelMode} heurist-label-pos-${labelPos}`;
+
+    if (!scaled) {
+      return `<span class="htl-item htl-point ${common}">` +
+               `<span class="htl-fuzzy"></span>${lead}` +
+             `</span>`;
+    }
+
+    const fuzzy = item.fuzzy || { headPct: 0, tailPct: 0 };
+    const profileStart = Number(item.temporal?.profileStart) || 0;
+    const profileEnd = Number(item.temporal?.profileEnd) || 0;
+    const hasCaps = fuzzy.headPct > 0 || fuzzy.tailPct > 0;
+    // No caps but a profile -> gradient the whole bar; caps -> solid middle.
+    const bodyGrad = hasCaps ? 0 : profileStart || profileEnd;
+    const head = fuzzy.headPct > 0
+      ? `<span class="htl-cap htl-cap-start htl-grad-${profileStart}" style="width:${fuzzy.headPct}%"></span>`
+      : "";
+    const tail = fuzzy.tailPct > 0
+      ? `<span class="htl-cap htl-cap-end htl-grad-${profileEnd}" style="width:${fuzzy.tailPct}%"></span>`
       : "";
 
-    return `<span class="${cls} heurist-label-${this.settings.labelMode || "full"} heurist-label-pos-${this.settings.labelPosition || "bar"}"${style}><span class="heurist-temporal-shape"></span><span class="heurist-temporal-label">${label}</span></span>`;
+    return `<span class="htl-item htl-range ${common}">` +
+             `<span class="htl-bar htl-grad-${bodyGrad}"></span>${head}${tail}${lead}` +
+           `</span>`;
+  }
+
+  /**
+   * Builds the Heurist record-type icon URL, or an empty string when the icon
+   * cannot be resolved (missing base URL, database, or record-type id).
+   *
+   * @param {number|string|null|undefined} rectypeId - Record type identifier.
+   * @returns {string} Icon URL or an empty string.
+   */
+  _iconUrl(rectypeId) {
+    const base = this.settings.iconBaseUrl;
+    const db = this.settings.database;
+    if (!base || !db || rectypeId == null || rectypeId === "") return "";
+    return `${base}?db=${encodeURIComponent(db)}&icon=${encodeURIComponent(rectypeId)}`;
   }
 }
 
