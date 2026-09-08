@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test",
-    "deploy:heurist": "npm run build && node scripts/deploy-heurist-data.mjs"
+    "deploy:heurist": "npm run build && node scripts/deploy-heurist-timeline.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.3.1",

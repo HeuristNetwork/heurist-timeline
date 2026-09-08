@@ -1,24 +1,221 @@
+/**
+ * @file HeuristTimelinePublicApi.js
+ * @brief Exposes the embeddable public API for the timeline application.
+ * @project     Heurist academic knowledge management system
+ * @package     heurist-timeline
+ * @link        https://HeuristNetwork.org
+ * @copyright   (C) 2024 onwards Heurist Network
+ * @author      Artem Osmakov   <osmakov@gmail.com>
+ * @author      Ian Johnson <ian.johnson.heurist@gmail.com>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.txt GNU License 3.0
+ * @since       8.0
+ */
+
+/**
+ * Public API facade that exposes timeline operations to callers and host applications.
+ */
 export class HeuristTimelinePublicApi {
-  constructor(application){ this.application=application; this.readyPromise=null; }
-  setReadyPromise(value){ this.readyPromise=value; }
-  ready(){ return this.readyPromise || Promise.resolve(this); }
-  setQuery(query, options){ return this.application.setQuery(query, options); }
-  setContexts(contexts, options){ return this.application.setContexts(contexts, options); }
-  addContext(context){ return this.application.addContext(context); }
-  removeContext(id){ return this.application.removeContext(id); }
-  setSelection(ids, options){ return this.application.setSelection(ids, options); }
-  clearSelection(){ return this.application.clearSelection(); }
-  refresh(){ return this.application.refresh(); }
-  resize(){ return this.application.resize(); }
-  getState(){ return this.application.getState(); }
-  zoomIn(){ return this.application.engine.zoomIn(); }
-  zoomOut(){ return this.application.engine.zoomOut(); }
-  zoomToAll(){ return this.application.zoomToAll(); }
-  zoomToSelection(){ return this.application.zoomToSelection(); }
-  moveToStart(){ return this.application.engine.moveToStart(); }
-  moveToEnd(){ return this.application.engine.moveToEnd(); }
-  cycleLabelMode(){ const modes=["full","truncate","fixed","hidden"]; const e=this.application.engine; const next=modes[(modes.indexOf(e.settings.labelMode)+1)%modes.length]; e.setOptions({ labelMode:next }); return next; }
-  addEventListener(...args){ this.application.addEventListener(...args); }
-  removeEventListener(...args){ this.application.removeEventListener(...args); }
-  destroy(){ return this.application.destroy(); }
+  /**
+   * Creates the public API wrapper around the application instance.
+   *
+   * @param {object} application - Timeline application controller.
+   */
+  constructor(application) {
+    this.application = application;
+    this.readyPromise = null;
+  }
+
+  /**
+   * Registers the promise that resolves once the timeline is ready.
+   *
+   * @param {Promise<object>} value - Ready promise.
+   */
+  setReadyPromise(value) {
+    this.readyPromise = value;
+  }
+
+  /**
+   * Resolves when the application is ready.
+   *
+   * @returns {Promise<object>} Pending ready promise or the API object itself.
+   */
+  ready() {
+    return this.readyPromise || Promise.resolve(this);
+  }
+
+  /**
+   * Sets the active result query for the current context.
+   *
+   * @param {string|object|null} query - Query payload.
+   * @param {object} [options={}] - Additional query options.
+   * @returns {Promise<object>} Updated application state.
+   */
+  setQuery(query, options) {
+    return this.application.setQuery(query, options);
+  }
+
+  /**
+   * Replaces the entire list of timeline contexts.
+   *
+   * @param {Array<object>} contexts - Context definitions.
+   * @param {object} [options={}] - Context update options.
+   * @returns {Promise<object>} Updated application state.
+   */
+  setContexts(contexts, options) {
+    return this.application.setContexts(contexts, options);
+  }
+
+  /**
+   * Adds a new context to the current timeline definition.
+   *
+   * @param {object} context - Context definition to append.
+   * @returns {Promise<object>} Updated application state.
+   */
+  addContext(context) {
+    return this.application.addContext(context);
+  }
+
+  /**
+   * Removes an existing context by identifier.
+   *
+   * @param {string|number} id - Context identifier.
+   * @returns {Promise<object>} Updated application state.
+   */
+  removeContext(id) {
+    return this.application.removeContext(id);
+  }
+
+  /**
+   * Sets the selected record identifiers.
+   *
+   * @param {Array<number>} ids - Selected record IDs.
+   * @param {object} [options={}] - Selection options.
+   * @returns {Promise<Array<number>>} Updated selection list.
+   */
+  setSelection(ids, options) {
+    return this.application.setSelection(ids, options);
+  }
+
+  /**
+   * Clears any existing record selection.
+   *
+   * @returns {Promise<Array<number>>} Updated selection list.
+   */
+  clearSelection() {
+    return this.application.clearSelection();
+  }
+
+  /**
+   * Reloads the active contexts from the source payload.
+   *
+   * @returns {Promise<object>} Updated application state.
+   */
+  refresh() {
+    return this.application.refresh();
+  }
+
+  /**
+   * Resizes the timeline display.
+   *
+   * @returns {Promise<void>|void} Resize result.
+   */
+  resize() {
+    return this.application.resize();
+  }
+
+  /**
+   * Returns the current serialized timeline application state.
+   *
+   * @returns {object} Current application state.
+   */
+  getState() {
+    return this.application.getState();
+  }
+
+  /**
+   * Zooms in by one step.
+   */
+  zoomIn() {
+    return this.application.engine.zoomIn();
+  }
+
+  /**
+   * Zooms out by one step.
+   */
+  zoomOut() {
+    return this.application.engine.zoomOut();
+  }
+
+  /**
+   * Fits the timeline to all loaded items.
+   *
+   * @returns {Promise<void>|void} Result of the engine call.
+   */
+  zoomToAll() {
+    return this.application.zoomToAll();
+  }
+
+  /**
+   * Fits the viewport around the current selection.
+   *
+   * @returns {Promise<void>|void} Result of the engine call.
+   */
+  zoomToSelection() {
+    return this.application.zoomToSelection();
+  }
+
+  /**
+   * Moves the viewport to the first item in the dataset.
+   */
+  moveToStart() {
+    return this.application.engine.moveToStart();
+  }
+
+  /**
+   * Moves the viewport to the final item in the dataset.
+   */
+  moveToEnd() {
+    return this.application.engine.moveToEnd();
+  }
+
+  /**
+   * Cycles through the available label display modes.
+   *
+   * @returns {string} The newly selected label mode.
+   */
+  cycleLabelMode() {
+    const modes = ["full", "truncate", "fixed", "hidden"];
+    const engine = this.application.engine;
+    const next = modes[(modes.indexOf(engine.settings.labelMode) + 1) % modes.length];
+    engine.setOptions({ labelMode: next });
+    return next;
+  }
+
+  /**
+   * Adds a DOM event listener to the underlying application.
+   *
+   * @returns {void}
+   */
+  addEventListener(...args) {
+    this.application.addEventListener(...args);
+  }
+
+  /**
+   * Removes a DOM event listener from the underlying application.
+   *
+   * @returns {void}
+   */
+  removeEventListener(...args) {
+    this.application.removeEventListener(...args);
+  }
+
+  /**
+   * Tears down the timeline and releases hosted resources.
+   *
+   * @returns {Promise<void>} Destroy operation result.
+   */
+  destroy() {
+    return this.application.destroy();
+  }
 }
+

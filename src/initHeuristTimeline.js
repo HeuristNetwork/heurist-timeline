@@ -1,16 +1,73 @@
-import { HeuristApiClient } from "@heurist/client-core/api";
-import { TimelineApplication } from "./core/TimelineApplication.js";
-import { TemporalDataProvider } from "./data/TemporalDataProvider.js";
-import { VisTimelineEngine } from "./engine/vis/VisTimelineEngine.js";
-import { createHostAdapter } from "./host/createHostAdapter.js";
-import { HeuristTimelinePublicApi } from "./host/HeuristTimelinePublicApi.js";
-import { TimelineToolbar } from "./ui/TimelineToolbar.js";
+/**
+ * @file initHeuristTimeline.js
+ * @brief Initializes the timeline runtime and binds it to the host container.
+ * @project     Heurist academic knowledge management system
+ * @package     heurist-timeline
+ * @link        https://HeuristNetwork.org
+ * @copyright   (C) 2024 onwards Heurist Network
+ * @author      Artem Osmakov   <osmakov@gmail.com>
+ * @author      Ian Johnson <ian.johnson.heurist@gmail.com>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.txt GNU License 3.0
+ * @since       8.0
+ */
 
-export async function initHeuristTimeline(config){
-  const container=document.getElementById(config.containerId); if(!container) throw new Error(`Timeline container #${config.containerId} was not found`);
-  const apiClient=new HeuristApiClient({ apiBaseUrl:config.apiBaseUrl,database:config.database,accessToken:config.accessToken,headers:config.requestHeaders });
-  const application=new TimelineApplication({ container,config,engine:new VisTimelineEngine(),host:createHostAdapter(config.host),provider:new TemporalDataProvider({apiClient}) });
-  const api=new HeuristTimelinePublicApi(application); const toolbar=new TimelineToolbar({api,settings:config.settings}); toolbar.mount(container);
-  const ready=application.initialize().then(()=>api); api.setReadyPromise(ready); const originalDestroy=api.destroy.bind(api); api.destroy=()=>{toolbar.destroy(); return originalDestroy();};
-  globalThis.heuristTimeline=api; return ready;
+import { HeuristApiClient } from "@heurist/client-core/api";
+import { createHostAdapter } from "./host/createHostAdapter.js";
+import { validateTimelineConfig } from "./validateTimelineConfig.js";
+
+/**
+ * Initializes the timeline application for the supplied container and runtime settings.
+ *
+ * @param {object} config - Timeline runtime configuration.
+ * @returns {Promise<object>} A promise resolving to the public timeline API.
+ * @throws {Error} If the config is invalid or the required DOM container is missing.
+ */
+export async function initHeuristTimeline(config) {
+  const { config: safeConfig, container } = validateTimelineConfig(config);
+
+  const [
+    { TimelineApplication },
+    { TemporalDataProvider },
+    { VisTimelineEngine },
+    { HeuristTimelinePublicApi },
+    { TimelineToolbar },
+  ] = await Promise.all([
+    import("./core/TimelineApplication.js"),
+    import("./data/TemporalDataProvider.js"),
+    import("./engine/vis/VisTimelineEngine.js"),
+    import("./host/HeuristTimelinePublicApi.js"),
+    import("./ui/TimelineToolbar.js"),
+  ]);
+
+  const apiClient = new HeuristApiClient({
+    apiBaseUrl: safeConfig.apiBaseUrl,
+    database: safeConfig.database,
+    accessToken: safeConfig.accessToken,
+    headers: safeConfig.requestHeaders,
+  });
+
+  const application = new TimelineApplication({
+    container,
+    config: safeConfig,
+    engine: new VisTimelineEngine(),
+    host: createHostAdapter(safeConfig.host),
+    provider: new TemporalDataProvider({ apiClient }),
+  });
+
+  const api = new HeuristTimelinePublicApi(application);
+  const toolbar = new TimelineToolbar({ api, settings: safeConfig.settings });
+  toolbar.mount(container);
+
+  const ready = application.initialize().then(() => api);
+  api.setReadyPromise(ready);
+
+  const originalDestroy = api.destroy.bind(api);
+  api.destroy = () => {
+    toolbar.destroy();
+    return originalDestroy();
+  };
+
+  globalThis.heuristTimeline = api;
+  return ready;
 }
+
