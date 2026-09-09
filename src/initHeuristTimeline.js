@@ -1,3 +1,4 @@
+import { showTimelineMessage } from "./ui/timelineMessages.js";
 /**
  * @file initHeuristTimeline.js
  * @brief Initializes the timeline runtime and binds it to the host container.
@@ -55,6 +56,9 @@ export async function initHeuristTimeline(config) {
   });
 
   const api = new HeuristTimelinePublicApi(application);
+  api.addEventListener('heurist-timeline-error', event => showTimelineMessage(event.detail?.error || event.detail?.message, { error: true }));
+  api.addEventListener('heurist-timeline-warning', event => showTimelineMessage(event.detail?.message));
+  api.addEventListener('heurist-timeline-message', event => showTimelineMessage(event.detail?.message, { title: 'Timeline' }));
   const toolbar = new TimelineToolbar({ api, settings: safeConfig.settings });
   toolbar.mount(container);
 

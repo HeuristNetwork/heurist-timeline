@@ -129,7 +129,7 @@ export class HeuristTimelinePublicApi {
    * @returns {object} Current application state.
    */
   getState() {
-    return this.application.getState();
+    return { ...this.application.getState(), options: { ...this.application.config.settings } };
   }
 
   /**
@@ -183,12 +183,27 @@ export class HeuristTimelinePublicApi {
    *
    * @returns {string} The newly selected label mode.
    */
+  applyOptions(options = {}) {
+    const settings = { ...this.application.config.settings };
+    for (const [key, choices] of Object.entries({ labelMode: ['full', 'truncate', 'hidden'], labelPosition: ['bar', 'above'], orientation: ['top', 'bottom', 'both'] })) {
+      if (key in options) {
+        if (!choices.includes(options[key])) throw new Error('Invalid timeline option: ' + key);
+        settings[key] = options[key];
+      }
+    }
+    if ('stack' in options) settings.stack = options.stack !== false;
+    this.application.engine.setOptions(settings);
+    this.application.config.settings = settings;
+    this.application.dispatch('heurist-timeline-options-changed', { ...settings });
+    return { ...settings };
+  }
+
   cycleLabelMode() {
     const modes = ["full", "truncate", "hidden"];
     const engine = this.application.engine;
     const current = modes.indexOf(engine.settings.labelMode);
     const next = modes[(current + 1) % modes.length];
-    engine.setOptions({ labelMode: next });
+    this.applyOptions({ labelMode: next });
     return next;
   }
 

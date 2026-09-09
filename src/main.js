@@ -11,7 +11,9 @@
  * @since       8.0
  */
 
+import "@heurist/client-core/ui/heurist-ui.css";
 import "./style.css";
+import { showTimelineMessage } from "./ui/timelineMessages.js";
 import "@fortawesome/fontawesome-free/css/fontawesome.min.css";
 import "@fortawesome/fontawesome-free/css/solid.min.css";
 
@@ -21,6 +23,7 @@ import { initHeuristTimeline } from "./initHeuristTimeline.js";
 const config = getHeuristTimelineConfig();
 
 initHeuristTimeline(config).catch((error) => {
+  showTimelineMessage(error, { error: true, title: "Unable to initialize the timeline" });
   const container = document.getElementById("heurist-timeline");
   if (container) {
     container.textContent = error?.message || String(error);

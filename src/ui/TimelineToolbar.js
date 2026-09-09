@@ -1,3 +1,6 @@
+import { $HR } from '@heurist/client-core/ui';
+import { TimelineConfigurationDialog } from './TimelineConfigurationDialog.js';
+import { showTimelineMessage } from './timelineMessages.js';
 /**
  * @file TimelineToolbar.js
  * @brief Provides the toolbar UI for the timeline viewport and navigation commands.
@@ -35,7 +38,7 @@ export class TimelineToolbar {
     if (this.settings.showToolbar === false) return;
 
     const bar = document.createElement("div");
-    bar.className = "heurist-timeline-toolbar";
+    bar.className = "heurist-timeline-toolbar h-widget h-toolbar";
 
     const buttons = [
       ["fa-plus", "Zoom in", () => this.api.zoomIn()],
@@ -44,15 +47,20 @@ export class TimelineToolbar {
       ["fa-crosshairs", "Zoom to selection", () => this.api.zoomToSelection()],
       ["fa-chevron-left", "Move to start", () => this.api.moveToStart()],
       ["fa-chevron-right", "Move to end", () => this.api.moveToEnd()],
+      ["fa-gear", "Timeline options", () => this._openOptions()],
       ["fa-tag", "Label options", () => this._cycleLabelMode()],
     ];
 
     for (const [icon, title, handler] of buttons) {
       const button = document.createElement("button");
       button.type = "button";
-      button.title = title;
+      button.className = "heurist-module-icon-button";
+      button.title = $HR(title);
+      button.setAttribute("aria-label", $HR(title));
       button.innerHTML = `<i class="fa-solid ${icon}"></i>`;
-      button.addEventListener("click", handler);
+      button.addEventListener("click", () => {
+        Promise.resolve().then(handler).catch(error => showTimelineMessage(error, { error: true }));
+      });
       bar.appendChild(button);
       if (icon === "fa-tag") this.labelButton = button;
     }
@@ -60,12 +68,19 @@ export class TimelineToolbar {
     this._syncLabelButton(this.settings.labelMode || "full");
     container.parentElement?.insertBefore(bar, container);
     this.element = bar;
+    this.optionsHandler = event => this._syncLabelButton(event.detail.labelMode);
+    this.api.addEventListener("heurist-timeline-options-changed", this.optionsHandler);
   }
 
   /**
    * Cycles the label display mode (full -> truncated -> hidden) and refreshes
    * the button hint.
    */
+  _openOptions() {
+    this.configurationDialog ||= new TimelineConfigurationDialog({ api: this.api });
+    this.configurationDialog.open();
+  }
+
   _cycleLabelMode() {
     this._syncLabelButton(this.api.cycleLabelMode());
   }
@@ -89,6 +104,8 @@ export class TimelineToolbar {
    * Removes the toolbar from the DOM.
    */
   destroy() {
+    this.configurationDialog?.close();
+    if (this.optionsHandler) this.api.removeEventListener("heurist-timeline-options-changed", this.optionsHandler);
     this.element?.remove();
     this.element = null;
   }
