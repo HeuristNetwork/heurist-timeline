@@ -2,7 +2,7 @@ html,body,#heurist-timeline{width:100%;height:100%;margin:0;min-height:0}
 body{overflow:hidden;font:var(--h-font-size) var(--h-font-family);color:var(--h-color-text);background:var(--h-color-bg)}
 .heurist-timeline-toolbar{height:34px;gap:2px;padding:2px 5px;border-bottom:1px solid var(--h-color-border);background:var(--h-color-surface);box-sizing:border-box}
 .heurist-timeline-toolbar+ #heurist-timeline{height:calc(100% - 34px)}
-.heurist-timeline-toolbar .heurist-module-icon-button{width:30px;height:28px}
+.heurist-timeline-toolbar .heurist-icon-button{width:30px;height:28px}
 
 /* ---------------------------------------------------------------------------
    Custom timeline bars. The 9-value Heurist tuple stays on the item; these

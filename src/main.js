@@ -12,6 +12,7 @@
  */
 
 import "@heurist/client-core/ui/heurist-ui.css";
+import "@heurist/client-core/ui/heurist-module.css";
 import "./style.css";
 import { showTimelineMessage } from "./ui/timelineMessages.js";
 import "@fortawesome/fontawesome-free/css/fontawesome.min.css";

@@ -54,7 +54,7 @@ export class TimelineToolbar {
     for (const [icon, title, handler] of buttons) {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "heurist-module-icon-button";
+      button.className = "heurist-icon-button";
       button.title = $HR(title);
       button.setAttribute("aria-label", $HR(title));
       button.innerHTML = `<i class="fa-solid ${icon}"></i>`;

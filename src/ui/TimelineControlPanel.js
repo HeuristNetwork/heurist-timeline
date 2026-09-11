@@ -6,13 +6,13 @@ export class TimelineControlPanel {
     this.element = document.createElement("div");
     this.element.className = "h-timeline-toolbar h-widget h-toolbar";
     this.element.innerHTML = `
-      <button type="button" class="heurist-module-icon-button" data-action="zoom-in" title="Zoom in"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-      <button type="button" class="heurist-module-icon-button" data-action="zoom-out" title="Zoom out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
-      <button type="button" class="heurist-module-icon-button" data-action="all" title="Zoom to all"><i class="fa-solid fa-arrows-left-right-to-line"></i></button>
-      <button type="button" class="heurist-module-icon-button" data-action="selection" title="Zoom to selection"><i class="fa-solid fa-crosshairs"></i></button>
-      <button type="button" class="heurist-module-icon-button" data-action="start" title="Move to start"><i class="fa-solid fa-backward-step"></i></button>
-      <button type="button" class="heurist-module-icon-button" data-action="end" title="Move to end"><i class="fa-solid fa-forward-step"></i></button>
-      <button type="button" class="heurist-module-icon-button" data-action="options" title="Timeline options"><i class="fa-solid fa-gear"></i></button>`;
+      <button type="button" class="heurist-icon-button" data-action="zoom-in" title="Zoom in"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+      <button type="button" class="heurist-icon-button" data-action="zoom-out" title="Zoom out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+      <button type="button" class="heurist-icon-button" data-action="all" title="Zoom to all"><i class="fa-solid fa-arrows-left-right-to-line"></i></button>
+      <button type="button" class="heurist-icon-button" data-action="selection" title="Zoom to selection"><i class="fa-solid fa-crosshairs"></i></button>
+      <button type="button" class="heurist-icon-button" data-action="start" title="Move to start"><i class="fa-solid fa-backward-step"></i></button>
+      <button type="button" class="heurist-icon-button" data-action="end" title="Move to end"><i class="fa-solid fa-forward-step"></i></button>
+      <button type="button" class="heurist-icon-button" data-action="options" title="Timeline options"><i class="fa-solid fa-gear"></i></button>`;
     this.container.parentElement.insertBefore(this.element, this.container);
     this.element.addEventListener("click", e => { Promise.resolve().then(() => this._action(e)).catch(error => showTimelineMessage(error, { error: true })); });
     return this;
